@@ -26,6 +26,7 @@ export class Swagger {
       replaceOneBase: `Replace a single ${modelName}`,
       deleteOneBase: `Delete a single ${modelName}`,
       recoverOneBase: `Recover one ${modelName}`,
+      searchBase:  `Search ${modelName}`,
     };
   }
 
@@ -98,6 +99,7 @@ export class Swagger {
               type: swaggerModels.get,
             },
           };
+        case 'searchBase':
         case 'getManyBase':
           /* istanbul ignore if */
           if (oldVersion) {

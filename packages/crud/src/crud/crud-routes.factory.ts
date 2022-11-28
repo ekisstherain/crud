@@ -61,6 +61,7 @@ export class CrudRoutesFactory {
       deleteOneBase: CrudActions.DeleteOne,
       replaceOneBase: CrudActions.ReplaceOne,
       recoverOneBase: CrudActions.RecoverOne,
+      searchBase: CrudActions.Search,
     };
   }
 
@@ -207,6 +208,14 @@ export class CrudRoutesFactory {
         override: false,
         withParams: true,
       },
+      {
+        name: 'searchBase',
+        path: '/search',
+        method: RequestMethod.POST,
+        enable: false,
+        override: false,
+        withParams: false,
+      },
     ];
   }
 
@@ -255,6 +264,12 @@ export class CrudRoutesFactory {
   protected recoverOneBase(name: BaseRouteName) {
     this.targetProto[name] = function recoverOneBase(req: CrudRequest) {
       return this.service.recoverOne(req);
+    };
+  }
+
+  protected searchBase(name: BaseRouteName) {
+    this.targetProto[name] = function getManyBase(req: CrudRequest) {
+      return this.service.getMany(req);
     };
   }
 

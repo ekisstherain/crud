@@ -6,4 +6,5 @@ export type BaseRouteName =
   | 'updateOneBase'
   | 'replaceOneBase'
   | 'deleteOneBase'
-  | 'recoverOneBase';
+  | 'recoverOneBase'
+  | 'searchBase';

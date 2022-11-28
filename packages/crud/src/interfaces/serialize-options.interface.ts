@@ -9,4 +9,5 @@ export interface SerializeOptions {
   replace?: Type<any> | false;
   delete?: Type<any> | false;
   recover?: Type<any> | false;
+  search?: Type<any> | false;
 }

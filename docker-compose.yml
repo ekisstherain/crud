@@ -2,6 +2,7 @@ version: '3'
 
 networks:
   nestjsx_crud:
+    driver: host
 
 services:
   postgres:

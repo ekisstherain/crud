@@ -2,7 +2,7 @@ import {
   Controller,
   Get,
   Param,
-  ParseIntPipe,
+  ParseIntPipe, Post,
   Query,
   UseInterceptors,
 } from '@nestjs/common';
@@ -23,6 +23,11 @@ describe('#crud', () => {
   class TestController {
     @Get('/query')
     async query(@ParsedRequest() req: CrudRequest) {
+      return req;
+    }
+
+    @Post('/search')
+    async search(@ParsedRequest() req: CrudRequest) {
       return req;
     }
 
@@ -173,6 +178,41 @@ describe('#crud', () => {
       const res = await $.get('/test/query')
         .query(qb.query())
         .expect(200);
+      expect(res.body.parsed).toHaveProperty('page', page);
+      expect(res.body.parsed).toHaveProperty('limit', limit);
+      expect(res.body.parsed).toHaveProperty('fields', fields);
+      expect(res.body.parsed).toHaveProperty('sort');
+      for (let i = 0; i < sorts.length; i++) {
+        expect(res.body.parsed.sort[i]).toHaveProperty('field', sorts[i][0]);
+        expect(res.body.parsed.sort[i]).toHaveProperty('order', sorts[i][1]);
+      }
+      expect(res.body.parsed).toHaveProperty('filter');
+      for (let i = 0; i < filters.length; i++) {
+        expect(res.body.parsed.filter[i]).toHaveProperty('field', filters[i][0]);
+        expect(res.body.parsed.filter[i]).toHaveProperty('operator', filters[i][1]);
+        expect(res.body.parsed.filter[i]).toHaveProperty('value', filters[i][2] || '');
+      }
+    });
+
+    it('should working on post search controller', async () => {
+      const page = 2;
+      const limit = 10;
+      const fields = ['a', 'b', 'c'];
+      const sorts: any[][] = [['a', 'ASC'], ['b', 'DESC']];
+      const filters: any[][] = [['a', 'eq', 1], ['c', 'in', [1, 2, 3]], ['d', 'notnull']];
+
+      qb.setPage(page).setLimit(limit);
+      qb.select(fields);
+      for (const s of sorts) {
+        qb.sortBy({ field: s[0], order: s[1] });
+      }
+      for (const f of filters) {
+        qb.setFilter({ field: f[0], operator: f[1], value: f[2] });
+      }
+
+      const res = await $.post('/test/search')
+        .send(qb.queryObject)
+        .expect(201);
       expect(res.body.parsed).toHaveProperty('page', page);
       expect(res.body.parsed).toHaveProperty('limit', limit);
       expect(res.body.parsed).toHaveProperty('fields', fields);
