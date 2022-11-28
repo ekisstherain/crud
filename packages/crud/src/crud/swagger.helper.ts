@@ -26,7 +26,7 @@ export class Swagger {
       replaceOneBase: `Replace a single ${modelName}`,
       deleteOneBase: `Delete a single ${modelName}`,
       recoverOneBase: `Recover one ${modelName}`,
-      searchBase:  `Search ${modelName}`,
+      searchBase: `Search ${modelName}`,
     };
   }
 
