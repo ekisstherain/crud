@@ -1,10 +1,4 @@
-import {
-  Controller,
-  INestApplication,
-  Injectable,
-  CanActivate,
-  ExecutionContext,
-} from '@nestjs/common';
+import { Controller, INestApplication, Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';

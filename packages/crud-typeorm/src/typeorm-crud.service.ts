@@ -788,7 +788,8 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       ...(options.persist && options.persist.length ? options.persist : []),
       ...columns,
       ...this.entityPrimaryColumns,
-    ].filter( (value, index, self) => self.indexOf(value) === index)
+    ]
+      .filter((value, index, self) => self.indexOf(value) === index)
       .map((col) => `${this.alias}.${col}`);
 
     return select;

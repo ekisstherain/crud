@@ -772,9 +772,7 @@ describe('#crud-typeorm', () => {
       it('should update company id of project', async () => {
         await request(server).patch('/projects/18').send({ companyId: 10 }).expect(200);
 
-        const modified = await request(server)
-          .get('/projects/18')
-          .expect(200);
+        const modified = await request(server).get('/projects/18').expect(200);
 
         expect(modified.body.companyId).toBe(10);
       });
