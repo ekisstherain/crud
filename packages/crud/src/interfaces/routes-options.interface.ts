@@ -11,6 +11,7 @@ export interface RoutesOptions {
   replaceOneBase?: ReplaceOneRouteOptions;
   deleteOneBase?: DeleteOneRouteOptions;
   recoverOneBase?: RecoverOneRouteOptions;
+  searchBase?: SearchRouteOptions;
 }
 
 export interface BaseRouteOptions {
@@ -45,3 +46,5 @@ export interface DeleteOneRouteOptions extends BaseRouteOptions {
 export interface RecoverOneRouteOptions extends BaseRouteOptions {
   returnRecovered?: boolean;
 }
+
+export type SearchRouteOptions = BaseRouteOptions;

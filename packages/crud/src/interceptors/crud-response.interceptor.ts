@@ -19,6 +19,7 @@ const actionToDtoNameMap: {
   [CrudActions.DeleteAll]: 'delete',
   [CrudActions.DeleteOne]: 'delete',
   [CrudActions.RecoverOne]: 'recover',
+  [CrudActions.Search]: 'search',
 };
 
 @Injectable()

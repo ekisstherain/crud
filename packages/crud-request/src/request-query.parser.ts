@@ -175,7 +175,7 @@ export class RequestQueryParser implements ParsedRequestParams {
       return (value as string[]).map((val) => parser(val));
     }
 
-    return [];
+    return [value as any];
   }
 
   private parseQueryParam(type: keyof RequestQueryBuilderOptions['paramNamesMap'], parser: any) {

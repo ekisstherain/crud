@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  Param,
-  ParseIntPipe,
-  Query,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, Post, Query, UseInterceptors } from '@nestjs/common';
 import { NestApplication } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import { RequestQueryBuilder } from '@nestjsx/crud-request';
@@ -23,6 +16,11 @@ describe('#crud', () => {
   class TestController {
     @Get('/query')
     async query(@ParsedRequest() req: CrudRequest) {
+      return req;
+    }
+
+    @Post('/search')
+    async search(@ParsedRequest() req: CrudRequest) {
       return req;
     }
 
@@ -61,10 +59,7 @@ describe('#crud', () => {
 
     @UseInterceptors(CrudRequestInterceptor)
     @Get('other2/:id/twoParams/:someParam')
-    async twoParams(
-      @ParsedRequest() req: CrudRequest,
-      @Param('someParam', ParseIntPipe) p: number,
-    ) {
+    async twoParams(@ParsedRequest() req: CrudRequest, @Param('someParam', ParseIntPipe) p: number) {
       return { filter: req.parsed.paramsFilter };
     }
   }
@@ -129,13 +124,7 @@ describe('#crud', () => {
   beforeAll(async () => {
     const module = await Test.createTestingModule({
       providers: [TestService],
-      controllers: [
-        TestController,
-        Test2Controller,
-        Test3Controller,
-        Test4Controller,
-        Test5Controller,
-      ],
+      controllers: [TestController, Test2Controller, Test3Controller, Test4Controller, Test5Controller],
     }).compile();
     app = module.createNestApplication();
     await app.init();
@@ -158,8 +147,15 @@ describe('#crud', () => {
       const page = 2;
       const limit = 10;
       const fields = ['a', 'b', 'c'];
-      const sorts: any[][] = [['a', 'ASC'], ['b', 'DESC']];
-      const filters: any[][] = [['a', 'eq', 1], ['c', 'in', [1, 2, 3]], ['d', 'notnull']];
+      const sorts: any[][] = [
+        ['a', 'ASC'],
+        ['b', 'DESC'],
+      ];
+      const filters: any[][] = [
+        ['a', 'eq', 1],
+        ['c', 'in', [1, 2, 3]],
+        ['d', 'notnull'],
+      ];
 
       qb.setPage(page).setLimit(limit);
       qb.select(fields);
@@ -170,9 +166,47 @@ describe('#crud', () => {
         qb.setFilter({ field: f[0], operator: f[1], value: f[2] });
       }
 
-      const res = await $.get('/test/query')
-        .query(qb.query())
-        .expect(200);
+      const res = await $.get('/test/query').query(qb.query()).expect(200);
+      expect(res.body.parsed).toHaveProperty('page', page);
+      expect(res.body.parsed).toHaveProperty('limit', limit);
+      expect(res.body.parsed).toHaveProperty('fields', fields);
+      expect(res.body.parsed).toHaveProperty('sort');
+      for (let i = 0; i < sorts.length; i++) {
+        expect(res.body.parsed.sort[i]).toHaveProperty('field', sorts[i][0]);
+        expect(res.body.parsed.sort[i]).toHaveProperty('order', sorts[i][1]);
+      }
+      expect(res.body.parsed).toHaveProperty('filter');
+      for (let i = 0; i < filters.length; i++) {
+        expect(res.body.parsed.filter[i]).toHaveProperty('field', filters[i][0]);
+        expect(res.body.parsed.filter[i]).toHaveProperty('operator', filters[i][1]);
+        expect(res.body.parsed.filter[i]).toHaveProperty('value', filters[i][2] || '');
+      }
+    });
+
+    it('should working on post search controller', async () => {
+      const page = 2;
+      const limit = 10;
+      const fields = ['a', 'b', 'c'];
+      const sorts: any[][] = [
+        ['a', 'ASC'],
+        ['b', 'DESC'],
+      ];
+      const filters: any[][] = [
+        ['a', 'eq', 1],
+        ['c', 'in', [1, 2, 3]],
+        ['d', 'notnull'],
+      ];
+
+      qb.setPage(page).setLimit(limit);
+      qb.select(fields);
+      for (const s of sorts) {
+        qb.sortBy({ field: s[0], order: s[1] });
+      }
+      for (const f of filters) {
+        qb.setFilter({ field: f[0], operator: f[1], value: f[2] });
+      }
+
+      const res = await $.post('/test/search').send(qb.queryObject).expect(201);
       expect(res.body.parsed).toHaveProperty('page', page);
       expect(res.body.parsed).toHaveProperty('limit', limit);
       expect(res.body.parsed).toHaveProperty('fields', fields);
@@ -190,9 +224,7 @@ describe('#crud', () => {
     });
 
     it('should others working', async () => {
-      const res = await $.get('/test/other')
-        .query({ page: 2, per_page: 11 })
-        .expect(200);
+      const res = await $.get('/test/other').query({ page: 2, per_page: 11 }).expect(200);
       expect(res.body.page).toBe(2);
     });
 
@@ -225,9 +257,7 @@ describe('#crud', () => {
     });
 
     it('should handle authorized request, 1', async () => {
-      const res = await $.post('/test3')
-        .send({})
-        .expect(201);
+      const res = await $.post('/test3').send({}).expect(201);
       const authPersist = { bar: false };
       const { parsed } = res.body;
       expect(parsed.authPersist).toMatchObject(authPersist);
@@ -241,17 +271,13 @@ describe('#crud', () => {
 
     it('should handle authorized request, 3', async () => {
       const query = qb.search({ name: 'test' }).query();
-      const res = await $.get('/test4')
-        .query(query)
-        .expect(200);
+      const res = await $.get('/test4').query(query).expect(200);
       const search = { $or: [{ id: 1 }, { $and: [{}, { name: 'test' }] }] };
       expect(res.body.parsed.search).toMatchObject(search);
     });
     it('should handle authorized request, 4', async () => {
       const query = qb.search({ name: 'test' }).query();
-      const res = await $.get('/test3')
-        .query(query)
-        .expect(200);
+      const res = await $.get('/test3').query(query).expect(200);
       const search = { $and: [{ user: 'test', buz: 1 }, { name: 'persist' }] };
       expect(res.body.parsed.search).toMatchObject(search);
     });
