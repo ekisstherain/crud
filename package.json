@@ -16,12 +16,17 @@
     "test:coverage": "yarn test:all --coverage",
     "test:coveralls": "yarn test:coverage --coverageReporters=text-lcov | coveralls",
     "test:all": "yarn test:mysql && yarn test:postgres",
-    "test:postgres": "yarn db:prepare:typeorm && yarn test",
+    "test:postgres": "yarn typeorm:cli:db:prepare && yarn test",
     "test:mysql": "yarn db:prepare:typeorm:mysql && TYPEORM_CONNECTION=mysql yarn test",
     "start:typeorm": "npx nodemon -w ./integration/crud-typeorm -e ts node_modules/ts-node/dist/bin.js integration/crud-typeorm/main.ts",
+    "typeorm": "typeorm-ts-node-esm",
+    "typeorm:cli:drop": "yarn typeorm schema:drop -d ./integration/crud-typeorm/orm.database.ts",
+    "typeorm:cli:sync": "yarn typeorm schema:sync -d ./integration/crud-typeorm/orm.database.ts",
+    "typeorm:cli:seeds": "yarn typeorm migration:run -d ./integration/crud-typeorm/orm.database.ts",
+    "typeorm:cli:db:prepare": "yarn typeorm:cli:drop && yarn typeorm:cli:sync && yarn typeorm:cli:seeds",
     "db:cli:typeorm": "cd ./integration/crud-typeorm && npx ts-node -r tsconfig-paths/register ../../node_modules/typeorm/cli.js",
     "db:sync:typeorm": "yarn db:cli:typeorm schema:sync -f=orm",
-    "db:drop:typeorm": "yarn db:cli:typeorm schema:drop -f=orm",
+    "db:drop:typeorm": "yarn typeorm:cli schema:drop",
     "db:seeds:typeorm": "yarn db:cli:typeorm migration:run -f=orm",
     "db:prepare:typeorm": "yarn db:drop:typeorm && yarn db:sync:typeorm && yarn db:seeds:typeorm",
     "db:prepare:typeorm:mysql": "yarn db:drop:typeorm -c=mysql && yarn db:sync:typeorm -c=mysql && yarn db:seeds:typeorm -c=mysql",
@@ -52,24 +57,26 @@
     "@nestjs/platform-express": "8.4.3",
     "@nestjs/swagger": "5.2.1",
     "@nestjs/testing": "8.4.3",
-    "@nestjs/typeorm": "8.0.3",
+    "@nestjs/typeorm": "^9.0.1",
     "@zmotivat0r/mrepo": "0.8.1",
     "class-transformer": "0.3.2",
     "class-validator": "0.13.2",
+    "module-alias": "^2.2.2",
     "mysql": "2.18.1",
-    "pg": "8.7.3",
+    "pg": "^8.8.0",
     "pluralize": "8.0.0",
     "qs": "6.10.3",
     "redis": "4.0.4",
     "reflect-metadata": "0.1.13",
     "rxjs": "7.5.5",
     "swagger-ui-express": "4.3.0",
-    "typeorm": "0.2.45"
+    "typeorm": "^0.3.10"
   },
   "devDependencies": {
     "@nuxtjs/opencollective": "0.2.2",
     "@types/jest": "27.4.1",
-    "@types/node": "17.0.23",
+    "@types/module-alias": "2.0.1",
+    "@types/node": "18.11.9",
     "@types/qs": "6.9.7",
     "@types/supertest": "2.0.12",
     "@typescript-eslint/eslint-plugin": "4.19.0",
@@ -91,13 +98,19 @@
     "rimraf": "3.0.2",
     "supertest": "6.2.2",
     "ts-jest": "27.1.4",
-    "ts-node": "10.7.0",
+    "ts-node": "10.9.1",
     "tsconfig-extends": "1.0.1",
     "tsconfig-paths": "3.14.1",
-    "typescript": "4.6.3"
+    "typescript": "^4.7.4"
   },
   "author": {
     "name": "Michael Yali",
     "email": "mihon4ik@gmail.com"
+  },
+  "_moduleAliases": {
+    "@nestjsx/crud": "packages/crud/src",
+    "@nestjsx/crud-typeorm": "packages/crud-typeorm/src",
+    "@nestjsx/crud-request": "packages/crud-request/src",
+    "@nestjsx/util": "packages/util/src"
   }
 }

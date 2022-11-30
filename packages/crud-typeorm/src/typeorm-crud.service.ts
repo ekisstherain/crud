@@ -783,11 +783,13 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         ? query.fields.filter((field) => allowed.some((col) => field === col))
         : allowed;
 
+    // 剔除重复的列
     const select = [
       ...(options.persist && options.persist.length ? options.persist : []),
       ...columns,
       ...this.entityPrimaryColumns,
-    ].map((col) => `${this.alias}.${col}`);
+    ].filter( (value, index, self) => self.indexOf(value) === index)
+      .map((col) => `${this.alias}.${col}`);
 
     return select;
   }

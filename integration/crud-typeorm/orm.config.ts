@@ -1,17 +1,17 @@
 import { join } from 'path';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { isNil } from '@nestjsx/util';
 
 const type = (process.env.TYPEORM_CONNECTION as any) || 'postgres';
 
 export const withCache: TypeOrmModuleOptions = {
   type,
-  host: '127.0.0.1',
-  port: type === 'postgres' ? 5455 : 3316,
-  username: type === 'mysql' ? 'nestjsx_crud' : 'root',
-  password: type === 'mysql' ? 'nestjsx_crud' : 'root',
+  host: '192.168.3.27',
+  port: type === 'postgres' ? 8002 : 3316,
+  username: type === 'mysql' ? 'nestjsx_crud' : 'nestjsx_crud_admin',
+  password: type === 'mysql' ? 'nestjsx_crud' : 'V6apGYXyEbPc_pcxHDH43F_8qLsDRTiZ',
   database: 'nestjsx_crud',
+  logging: false,
   synchronize: false,
-  logging: !isNil(process.env.TYPEORM_LOGGING) ? !!parseInt(process.env.TYPEORM_LOGGING, 10) : true,
-  entities: [join(__dirname, './**/*.entity{.ts,.js}')],
+  entities: [join(__dirname, './**/*.entity{.ts,.js}')]
+  /*namingStrategy: new SnakeNamingStrategy(),*/
 };

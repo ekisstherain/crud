@@ -1,9 +1,9 @@
 default:
   type: postgres
-  host: 127.0.0.1
-  port: 5455
-  username: root
-  password: root
+  host: 192.168.3.27
+  port: 8002
+  username: nestjsx_crud_admin
+  password: V6apGYXyEbPc_pcxHDH43F_8qLsDRTiZ
   database: nestjsx_crud
   entities:
     - ./**/*.entity.ts
