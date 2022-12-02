@@ -1,6 +1,6 @@
 import { BadRequestException, CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
 import { RequestQueryException, RequestQueryParser, SCondition, QueryFilter } from '@nestjsx/crud-request';
-import { isNil, isFunction, isArrayFull, hasLength, isObjectFull } from '@nestjsx/util';
+import { isNil, isFunction, isArrayFull, hasLength, isObject } from '@nestjsx/util';
 
 import { PARSED_CRUD_REQUEST_KEY } from '../constants';
 import { CrudActions } from '../enums';
@@ -20,7 +20,56 @@ export class CrudRequestInterceptor extends CrudBaseInterceptor implements NestI
         const parser = RequestQueryParser.create();
 
         if (req.url.indexOf('/search') > -1) {
-          parser.parseQuery(req.body);
+          const body: RequestQueryParser = req.body;
+          const searchConditions: any = [];
+          // 计算简单查询
+          if (isObject(body.query)) {
+            const keywordsValue = body.query.keywords;
+            const keywordFields = body.keywordFields;
+            // 关键词查询条件整理
+            if (hasLength(keywordFields) && keywordsValue) {
+              const keywordConditions: any = [];
+              keywordFields.forEach((key) => {
+                keywordConditions.push({
+                  [key]: {
+                    $cont: keywordsValue,
+                  },
+                });
+              });
+
+              searchConditions.push({
+                $or: keywordConditions,
+              });
+            }
+
+            // 处理keyword之外的其他字段
+            Object.entries(body.query).forEach(([key, value]) => {
+              // 排除关键字处理
+              if (key === 'keyword') {
+                return;
+              }
+              if (!isNil(value)) {
+                searchConditions.push({
+                  [key]: {
+                    $cont: value,
+                  },
+                });
+              }
+            });
+
+            const simpleConditions = {
+              $and: searchConditions,
+            };
+
+            // 修正 search条件
+            if (!isNil(body.search)) {
+              body.search = Object.assign(simpleConditions, body.search);
+            } else {
+              body.search = simpleConditions;
+            }
+          }
+
+          parser.parseQuery(body);
         } else {
           parser.parseQuery(req.query);
         }

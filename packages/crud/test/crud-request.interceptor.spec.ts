@@ -206,7 +206,8 @@ describe('#crud', () => {
         qb.setFilter({ field: f[0], operator: f[1], value: f[2] });
       }
 
-      const res = await $.post('/test/search').send(qb.queryObject).expect(201);
+      const queryObject = qb.queryObject;
+      const res = await $.post('/test/search').send(queryObject).expect(201);
       expect(res.body.parsed).toHaveProperty('page', page);
       expect(res.body.parsed).toHaveProperty('limit', limit);
       expect(res.body.parsed).toHaveProperty('fields', fields);

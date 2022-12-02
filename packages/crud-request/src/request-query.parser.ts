@@ -33,34 +33,64 @@ import {
   SConditionAND,
   SFields,
 } from './types';
+import { ApiProperty } from '@nestjs/swagger';
 
 // tslint:disable:variable-name ban-types
 export class RequestQueryParser implements ParsedRequestParams {
+  @ApiProperty({ required: false })
   public fields: QueryFields = [];
 
+  @ApiProperty({ required: false })
   public paramsFilter: QueryFilter[] = [];
 
+  @ApiProperty({ required: false })
   public authPersist: ObjectLiteral = undefined;
 
+  @ApiProperty({ required: false })
   public search: SCondition;
 
+  @ApiProperty({ required: false })
   public filter: QueryFilter[] = [];
 
+  @ApiProperty({ required: false })
   public or: QueryFilter[] = [];
 
+  @ApiProperty({ required: false })
   public join: QueryJoin[] = [];
 
+  @ApiProperty({ required: false })
   public sort: QuerySort[] = [];
 
+  @ApiProperty({ required: false })
   public limit: number;
 
+  @ApiProperty({ required: false })
   public offset: number;
 
+  @ApiProperty({ required: false })
   public page: number;
 
+  @ApiProperty({ required: false })
   public cache: number;
 
+  @ApiProperty({ required: false })
   public includeDeleted: number;
+
+  /**
+   * 自定义查询对象
+   * {
+   *   fieldName: 'fieldValue',
+   *   keywords: 'test'
+   * }
+   */
+  @ApiProperty({ required: false })
+  public query: any;
+
+  /**
+   * 关键词查询字段定义
+   */
+  @ApiProperty({ required: false })
+  public keywordFields: string[];
 
   private _params: any;
 
@@ -96,12 +126,12 @@ export class RequestQueryParser implements ParsedRequestParams {
     };
   }
 
-  parseQuery(query: any): this {
-    if (isObject(query)) {
-      const paramNames = objKeys(query);
+  parseQuery(requestBody: any): this {
+    if (isObject(requestBody)) {
+      const paramNames = objKeys(requestBody);
 
       if (hasLength(paramNames)) {
-        this._query = query;
+        this._query = requestBody;
         this._paramNames = paramNames;
         const searchData = this._query[this.getParamNames('search')[0]];
         this.search = this.parseSearchQueryParam(searchData) as any;

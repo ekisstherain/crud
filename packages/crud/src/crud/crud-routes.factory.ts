@@ -23,6 +23,7 @@ import { BaseRoute, CrudOptions, CrudRequest, MergedCrudOptions } from '../inter
 import { BaseRouteName } from '../types';
 import { CrudActions, CrudValidationGroups } from '../enums';
 import { CrudConfigService } from '../module';
+import { RequestQueryParser } from '@nestjsx/crud-request';
 
 export class CrudRoutesFactory {
   protected options: MergedCrudOptions;
@@ -66,6 +67,7 @@ export class CrudRoutesFactory {
   }
 
   protected create() {
+    console.error('create_routers');
     const routesSchema = this.getRoutesSchema();
     this.mergeOptions();
     this.setResponseModels();
@@ -268,7 +270,7 @@ export class CrudRoutesFactory {
   }
 
   protected searchBase(name: BaseRouteName) {
-    this.targetProto[name] = function getManyBase(req: CrudRequest) {
+    this.targetProto[name] = function searchBase(req: CrudRequest) {
       return this.service.getMany(req);
     };
   }
@@ -372,7 +374,7 @@ export class CrudRoutesFactory {
   }
 
   protected overrideParsedBodyDecorator(override: BaseRouteName, name: string) {
-    const allowed = ['createManyBase', 'createOneBase', 'updateOneBase', 'replaceOneBase'] as BaseRouteName[];
+    const allowed = ['createManyBase', 'createOneBase', 'updateOneBase', 'replaceOneBase', 'searchBase'] as BaseRouteName[];
     const withBody = isIn(override, allowed);
     const parsedBody = R.getParsedBody(this.targetProto[name]);
 
@@ -433,7 +435,7 @@ export class CrudRoutesFactory {
 
   protected setRouteArgs(name: BaseRouteName) {
     let rest = {};
-    const routes: BaseRouteName[] = ['createManyBase', 'createOneBase', 'updateOneBase', 'replaceOneBase'];
+    const routes: BaseRouteName[] = ['createManyBase', 'createOneBase', 'updateOneBase', 'replaceOneBase', 'searchBase'];
 
     if (isIn(name, routes)) {
       const action = this.routeNameAction(name);
@@ -455,6 +457,10 @@ export class CrudRoutesFactory {
     } else if (isIn(name, ['createOneBase', 'updateOneBase', 'replaceOneBase'])) {
       const action = this.routeNameAction(name);
       const dto = this.options.dto[action] || this.modelType;
+      R.setRouteArgsTypes([Object, dto], this.targetProto, name);
+    } else if (isEqual(name, 'searchBase')) {
+      const action = this.routeNameAction(name);
+      const dto = this.options.dto[action] || RequestQueryParser;
       R.setRouteArgsTypes([Object, dto], this.targetProto, name);
     } else {
       R.setRouteArgsTypes([Object], this.targetProto, name);
@@ -490,7 +496,7 @@ export class CrudRoutesFactory {
 
   protected setSwaggerPathParams(name: BaseRouteName) {
     const metadata = Swagger.getParams(this.targetProto[name]);
-    const withoutPrimary: BaseRouteName[] = ['createManyBase', 'createOneBase', 'getManyBase'];
+    const withoutPrimary: BaseRouteName[] = ['createManyBase', 'createOneBase', 'getManyBase', 'searchBase'];
 
     const removePrimary = isIn(name, withoutPrimary);
     const params = objKeys(this.options.params)
@@ -516,6 +522,18 @@ export class CrudRoutesFactory {
   }
 
   protected routeNameAction(name: BaseRouteName): string {
-    return name.split('OneBase')[0] || /* istanbul ignore next */ name.split('ManyBase')[0];
+    if (name.endsWith('OneBase')) {
+      return name.split('OneBase')[0];
+    }
+
+    if (name.endsWith('ManyBase')) {
+      return name.split('ManyBase')[0];
+    }
+
+    if (name.endsWith('Base')) {
+      return name.split('Base')[0];
+    }
+
+    return name;
   }
 }
