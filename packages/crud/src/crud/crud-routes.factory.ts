@@ -374,7 +374,13 @@ export class CrudRoutesFactory {
   }
 
   protected overrideParsedBodyDecorator(override: BaseRouteName, name: string) {
-    const allowed = ['createManyBase', 'createOneBase', 'updateOneBase', 'replaceOneBase', 'searchBase'] as BaseRouteName[];
+    const allowed = [
+      'createManyBase',
+      'createOneBase',
+      'updateOneBase',
+      'replaceOneBase',
+      'searchBase',
+    ] as BaseRouteName[];
     const withBody = isIn(override, allowed);
     const parsedBody = R.getParsedBody(this.targetProto[name]);
 
@@ -435,7 +441,13 @@ export class CrudRoutesFactory {
 
   protected setRouteArgs(name: BaseRouteName) {
     let rest = {};
-    const routes: BaseRouteName[] = ['createManyBase', 'createOneBase', 'updateOneBase', 'replaceOneBase', 'searchBase'];
+    const routes: BaseRouteName[] = [
+      'createManyBase',
+      'createOneBase',
+      'updateOneBase',
+      'replaceOneBase',
+      'searchBase',
+    ];
 
     if (isIn(name, routes)) {
       const action = this.routeNameAction(name);
