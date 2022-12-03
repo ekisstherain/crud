@@ -61,6 +61,7 @@
     "@zmotivat0r/mrepo": "0.8.1",
     "class-transformer": "0.3.2",
     "class-validator": "0.13.2",
+    "lodash": "^4.17.21",
     "module-alias": "^2.2.2",
     "mysql": "2.18.1",
     "pg": "^8.8.0",
@@ -101,7 +102,8 @@
     "ts-node": "10.9.1",
     "tsconfig-extends": "1.0.1",
     "tsconfig-paths": "3.14.1",
-    "typescript": "^4.7.4"
+    "typescript": "^4.7.4",
+    "@types/lodash": "^4.14.191"
   },
   "author": {
     "name": "Michael Yali",

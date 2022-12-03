@@ -305,14 +305,19 @@ export class RequestQueryParser implements ParsedRequestParams {
     return join;
   }
 
-  private sortParser(data: string): QuerySort {
-    const param = data.split(this._options.delimStr);
-    const sort: QuerySort = {
-      field: param[0],
-      order: param[1] as any,
-    };
-    validateSort(sort);
+  private sortParser(data: any): QuerySort {
+    let sort: QuerySort;
+    if (isString(data)) {
+      const param = data.split(this._options.delimStr);
+      sort = {
+        field: param[0],
+        order: param[1] as any,
+      };
+    } else {
+      sort = data;
+    }
 
+    validateSort(sort);
     return sort;
   }
 

@@ -19,7 +19,7 @@ import { SerializeHelper } from './serialize.helper';
 import { Swagger } from './swagger.helper';
 import { Validation } from './validation.helper';
 import { CrudRequestInterceptor, CrudResponseInterceptor } from '../interceptors';
-import { BaseRoute, CrudOptions, CrudRequest, MergedCrudOptions } from '../interfaces';
+import { BaseRoute, CrudOptions, CrudRequest, MergedCrudOptions, SearchDto } from '../interfaces';
 import { BaseRouteName } from '../types';
 import { CrudActions, CrudValidationGroups } from '../enums';
 import { CrudConfigService } from '../module';
@@ -472,7 +472,7 @@ export class CrudRoutesFactory {
       R.setRouteArgsTypes([Object, dto], this.targetProto, name);
     } else if (isEqual(name, 'searchBase')) {
       const action = this.routeNameAction(name);
-      const dto = this.options.dto[action] || RequestQueryParser;
+      const dto = this.options.dto[action] || SearchDto;
       R.setRouteArgsTypes([Object, dto], this.targetProto, name);
     } else {
       R.setRouteArgsTypes([Object], this.targetProto, name);

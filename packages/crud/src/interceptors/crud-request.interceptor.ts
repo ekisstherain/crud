@@ -1,12 +1,19 @@
 import { BadRequestException, CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
-import { RequestQueryException, RequestQueryParser, SCondition, QueryFilter } from '@nestjsx/crud-request';
-import { isNil, isFunction, isArrayFull, hasLength, isObject } from '@nestjsx/util';
+import {
+  RequestQueryException,
+  RequestQueryParser,
+  SCondition,
+  QueryFilter,
+  QuerySort, ParsedRequestParams,
+} from '@nestjsx/crud-request';
+import { isNil, isFunction, isArrayFull, hasLength, isObject, isString } from '@nestjsx/util';
 
 import { PARSED_CRUD_REQUEST_KEY } from '../constants';
 import { CrudActions } from '../enums';
-import { MergedCrudOptions, CrudRequest } from '../interfaces';
+import { MergedCrudOptions, CrudRequest, SearchDto } from '../interfaces';
 import { QueryFilterFunction } from '../types';
 import { CrudBaseInterceptor } from './crud-base.interceptor';
+import * as _ from 'lodash';
 
 @Injectable()
 export class CrudRequestInterceptor extends CrudBaseInterceptor implements NestInterceptor {
@@ -18,68 +25,31 @@ export class CrudRequestInterceptor extends CrudBaseInterceptor implements NestI
       if (!req[PARSED_CRUD_REQUEST_KEY]) {
         const { ctrlOptions, crudOptions, action } = this.getCrudInfo(context);
         const parser = RequestQueryParser.create();
-
+        let bodyConditions: SCondition[] = [];
         if (req.url.indexOf('/search') > -1) {
-          const body: RequestQueryParser = req.body;
-          const searchConditions: any = [];
-          // 计算简单查询
-          if (isObject(body.query)) {
-            const keywordsValue = body.query.keywords;
-            const keywordFields = body.keywordFields;
-            // 关键词查询条件整理
-            if (hasLength(keywordFields) && keywordsValue) {
-              const keywordConditions: any = [];
-              keywordFields.forEach((key) => {
-                keywordConditions.push({
-                  [key]: {
-                    $cont: keywordsValue,
-                  },
-                });
-              });
-
-              searchConditions.push({
-                $or: keywordConditions,
-              });
-            }
-
-            // 处理keyword之外的其他字段
-            Object.entries(body.query).forEach(([key, value]) => {
-              // 排除关键字处理
-              if (key === 'keyword') {
-                return;
-              }
-              if (!isNil(value)) {
-                searchConditions.push({
-                  [key]: {
-                    $cont: value,
-                  },
-                });
-              }
-            });
-
-            const simpleConditions = {
-              $and: searchConditions,
-            };
-
-            // 修正 search条件
-            if (!isNil(body.search)) {
-              body.search = Object.assign(simpleConditions, body.search);
-            } else {
-              body.search = simpleConditions;
-            }
+          const body: SearchDto = req.body;
+          if (isObject(body)) {
+            bodyConditions = this.buildSearchCondition(body, crudOptions);
+            const query = {
+              page: body.page,
+              limit: body.limit,
+              sort: this.handleSort(body.sort),
+            } as ParsedRequestParams;
+            parser.parseQuery(query);
           }
-
-          parser.parseQuery(body);
         } else {
           parser.parseQuery(req.query);
         }
 
         if (!isNil(ctrlOptions)) {
           const search = this.getSearch(parser, crudOptions, action, req.params);
+          const allConditions = [...search, ...bodyConditions];
           const auth = this.getAuth(parser, crudOptions, req);
-          parser.search = auth.or ? { $or: [auth.or, { $and: search }] } : { $and: [auth.filter, ...search] };
+          parser.search = auth.or ? { $or: [auth.or, { $and: allConditions }] } : { $and: [auth.filter, ...allConditions] };
         } else {
-          parser.search = { $and: this.getSearch(parser, crudOptions, action) };
+          const search = this.getSearch(parser, crudOptions, action);
+          const allConditions = [...search, ...bodyConditions];
+          parser.search = { $and: allConditions };
         }
 
         req[PARSED_CRUD_REQUEST_KEY] = this.getCrudRequest(parser, crudOptions);
@@ -89,6 +59,88 @@ export class CrudRequestInterceptor extends CrudBaseInterceptor implements NestI
     } catch (error) {
       /* istanbul ignore next */
       throw error instanceof RequestQueryException ? new BadRequestException(error.message) : error;
+    }
+  }
+
+  /**
+   * 构建查询条件对象
+   *
+   * @param body
+   * @param crudOptions
+   */
+  buildSearchCondition(body: any, crudOptions: Partial<MergedCrudOptions>): SCondition[] {
+    const searchConditions: SCondition[] = [];
+    const keywordsValue = body.keyword;
+    const keywordFields = crudOptions.query?.keywordFields;
+    // 关键词查询条件整理
+    if (keywordFields && hasLength(keywordFields) && keywordsValue) {
+      const keywordConditions: any = [];
+      keywordFields.forEach((key) => {
+        keywordConditions.push({
+          [key]: {
+            $cont: keywordsValue,
+          },
+        });
+      });
+
+      searchConditions.push({
+        $or: keywordConditions,
+      });
+    }
+
+    // 排除关键字处理
+    const simpleQuery = _.omit(body, ['keyword', 'page', 'limit', 'sort']);
+    Object.entries(simpleQuery).forEach(([key, value]) => {
+      if (!isNil(value)) {
+        searchConditions.push({
+          [key]: {
+            $cont: value,
+          },
+        });
+      }
+    });
+
+    return searchConditions;
+  }
+
+  /**
+   * 排序参数处理
+   * 格式：['name,ASC','column,DESC']
+   */
+  handleSort(sort: any) {
+    const querySorts: QuerySort[] = [];
+    if (isString(sort)) {
+      querySorts.push(this.buildQuerySortItem(sort));
+    } else if (isArrayFull(sort)) {
+      sort.forEach(sortItem => {
+        querySorts.push(this.buildQuerySortItem(sortItem));
+      });
+    } else {
+      console.error('sort param invalid:', sort);
+    }
+
+    return querySorts;
+  }
+
+  /**
+   * 排序参数处理
+   * 格式：
+   * 'name'
+   * 'name,ASC'
+   * 'name,DESC'
+   */
+  buildQuerySortItem(value: string): QuerySort {
+    const sortItem = value.split(',');
+    if (sortItem.length === 2) {
+      return {
+        field: sortItem[0],
+        order: sortItem[1].toUpperCase() === 'DESC' ? 'DESC' : 'ASC',
+      };
+    } else {
+      return {
+        field: value,
+        order: 'ASC',
+      };
     }
   }
 
@@ -137,18 +189,18 @@ export class CrudRequestInterceptor extends CrudBaseInterceptor implements NestI
       search =
         parser.filter.length === 1 && parser.or.length === 1
           ? [
-              {
-                $or: [parser.convertFilterToSearch(parser.filter[0]), parser.convertFilterToSearch(parser.or[0])],
-              },
-            ]
+            {
+              $or: [parser.convertFilterToSearch(parser.filter[0]), parser.convertFilterToSearch(parser.or[0])],
+            },
+          ]
           : [
-              {
-                $or: [
-                  { $and: parser.filter.map(parser.convertFilterToSearch) },
-                  { $and: parser.or.map(parser.convertFilterToSearch) },
-                ],
-              },
-            ];
+            {
+              $or: [
+                { $and: parser.filter.map(parser.convertFilterToSearch) },
+                { $and: parser.or.map(parser.convertFilterToSearch) },
+              ],
+            },
+          ];
     } else if (hasLength(parser.filter)) {
       search = parser.filter.map(parser.convertFilterToSearch);
     } else {
@@ -157,10 +209,10 @@ export class CrudRequestInterceptor extends CrudBaseInterceptor implements NestI
           parser.or.length === 1
             ? [parser.convertFilterToSearch(parser.or[0])]
             : /* istanbul ignore next */ [
-                {
-                  $or: parser.or.map(parser.convertFilterToSearch),
-                },
-              ];
+              {
+                $or: parser.or.map(parser.convertFilterToSearch),
+              },
+            ];
       }
     }
 

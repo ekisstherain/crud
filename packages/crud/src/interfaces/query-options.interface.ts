@@ -17,6 +17,7 @@ export interface QueryOptions {
   cache?: number | false;
   alwaysPaginate?: boolean;
   softDelete?: boolean;
+  keywordFields?: string[];
 }
 
 export interface JoinOptions {
