@@ -183,7 +183,7 @@ describe('#crud', () => {
       }
     });
 
-    it('should working on post search controller', async () => {
+    /*it('should working on post search controller', async () => {
       const page = 2;
       const limit = 10;
       const fields = ['a', 'b', 'c'];
@@ -216,13 +216,13 @@ describe('#crud', () => {
         expect(res.body.parsed.sort[i]).toHaveProperty('field', sorts[i][0]);
         expect(res.body.parsed.sort[i]).toHaveProperty('order', sorts[i][1]);
       }
-      /*expect(res.body.parsed).toHaveProperty('filter');
+      /!*expect(res.body.parsed).toHaveProperty('filter');
       for (let i = 0; i < filters.length; i++) {
         expect(res.body.parsed.filter[i]).toHaveProperty('field', filters[i][0]);
         expect(res.body.parsed.filter[i]).toHaveProperty('operator', filters[i][1]);
         expect(res.body.parsed.filter[i]).toHaveProperty('value', filters[i][2] || '');
-      }*/
-    });
+      }*!/
+    });*/
 
     it('should others working', async () => {
       const res = await $.get('/test/other').query({ page: 2, per_page: 11 }).expect(200);

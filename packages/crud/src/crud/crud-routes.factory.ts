@@ -67,7 +67,7 @@ export class CrudRoutesFactory {
   }
 
   protected create() {
-    console.error('create_routers');
+    // console.error('create_routers');
     const routesSchema = this.getRoutesSchema();
     this.mergeOptions();
     this.setResponseModels();

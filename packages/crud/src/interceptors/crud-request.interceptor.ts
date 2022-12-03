@@ -4,7 +4,8 @@ import {
   RequestQueryParser,
   SCondition,
   QueryFilter,
-  QuerySort, ParsedRequestParams,
+  QuerySort,
+  ParsedRequestParams,
 } from '@nestjsx/crud-request';
 import { isNil, isFunction, isArrayFull, hasLength, isObject, isString } from '@nestjsx/util';
 
@@ -45,7 +46,9 @@ export class CrudRequestInterceptor extends CrudBaseInterceptor implements NestI
           const search = this.getSearch(parser, crudOptions, action, req.params);
           const allConditions = [...search, ...bodyConditions];
           const auth = this.getAuth(parser, crudOptions, req);
-          parser.search = auth.or ? { $or: [auth.or, { $and: allConditions }] } : { $and: [auth.filter, ...allConditions] };
+          parser.search = auth.or
+            ? { $or: [auth.or, { $and: allConditions }] }
+            : { $and: [auth.filter, ...allConditions] };
         } else {
           const search = this.getSearch(parser, crudOptions, action);
           const allConditions = [...search, ...bodyConditions];
@@ -112,7 +115,7 @@ export class CrudRequestInterceptor extends CrudBaseInterceptor implements NestI
     if (isString(sort)) {
       querySorts.push(this.buildQuerySortItem(sort));
     } else if (isArrayFull(sort)) {
-      sort.forEach(sortItem => {
+      sort.forEach((sortItem) => {
         querySorts.push(this.buildQuerySortItem(sortItem));
       });
     } else {
@@ -189,18 +192,18 @@ export class CrudRequestInterceptor extends CrudBaseInterceptor implements NestI
       search =
         parser.filter.length === 1 && parser.or.length === 1
           ? [
-            {
-              $or: [parser.convertFilterToSearch(parser.filter[0]), parser.convertFilterToSearch(parser.or[0])],
-            },
-          ]
+              {
+                $or: [parser.convertFilterToSearch(parser.filter[0]), parser.convertFilterToSearch(parser.or[0])],
+              },
+            ]
           : [
-            {
-              $or: [
-                { $and: parser.filter.map(parser.convertFilterToSearch) },
-                { $and: parser.or.map(parser.convertFilterToSearch) },
-              ],
-            },
-          ];
+              {
+                $or: [
+                  { $and: parser.filter.map(parser.convertFilterToSearch) },
+                  { $and: parser.or.map(parser.convertFilterToSearch) },
+                ],
+              },
+            ];
     } else if (hasLength(parser.filter)) {
       search = parser.filter.map(parser.convertFilterToSearch);
     } else {
@@ -209,10 +212,10 @@ export class CrudRequestInterceptor extends CrudBaseInterceptor implements NestI
           parser.or.length === 1
             ? [parser.convertFilterToSearch(parser.or[0])]
             : /* istanbul ignore next */ [
-              {
-                $or: parser.or.map(parser.convertFilterToSearch),
-              },
-            ];
+                {
+                  $or: parser.or.map(parser.convertFilterToSearch),
+                },
+              ];
       }
     }
 
