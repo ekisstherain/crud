@@ -20,8 +20,11 @@ export class SearchDto {
   @ApiProperty({
     required: false,
     description: 'Sort format: column[,ASC|DESC]',
-    example: ['firstName:ASC', 'lastName:DESC'],
-    examples: ['firstName', ['firstName:DESC'], ['firstName:ASC', 'lastName,DESC']],
+    example: { field: 'firstName', order: 'ASC' },
+    examples: [
+      { field: 'firstName', order: 'ASC' },
+      [{ field: 'firstName', order: 'ASC' }, { field: 'lastName', order: 'DESC' }],
+    ],
   })
   sort: string[];
 }

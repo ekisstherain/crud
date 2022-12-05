@@ -1,7 +1,7 @@
 import { isUndefined, isArrayStrings, isStringFull, isObject, isEqual, isNumber, isNil, objKeys } from '@nestjsx/util';
 
 import { RequestQueryException } from './exceptions';
-import { ParamsOptions, ParamOption } from './interfaces';
+import { ParamsOptions } from './interfaces';
 import { QueryFields, QueryFilter, ComparisonOperator, QueryJoin, QuerySort, CondOperator } from './types';
 
 export const deprecatedComparisonOperatorsList = [

@@ -7,7 +7,7 @@ import {
   QuerySort,
   ParsedRequestParams,
 } from '@nestjsx/crud-request';
-import { isNil, isFunction, isArrayFull, hasLength, isObject, isString } from '@nestjsx/util';
+import { isNil, isFunction, isArrayFull, hasLength, isObject, isString, isObjectFull } from '@nestjsx/util';
 
 import { PARSED_CRUD_REQUEST_KEY } from '../constants';
 import { CrudActions } from '../enums';
@@ -15,6 +15,7 @@ import { MergedCrudOptions, CrudRequest, SearchDto } from '../interfaces';
 import { QueryFilterFunction } from '../types';
 import { CrudBaseInterceptor } from './crud-base.interceptor';
 import * as _ from 'lodash';
+import { validateSort } from '@nestjsx/crud-request/lib/request-query.validator';
 
 @Injectable()
 export class CrudRequestInterceptor extends CrudBaseInterceptor implements NestInterceptor {
@@ -109,17 +110,24 @@ export class CrudRequestInterceptor extends CrudBaseInterceptor implements NestI
   /**
    * 排序参数处理
    * 格式：['name,ASC','column,DESC']
+   * 或者格式：[{field: firstName, order: 'ASC'}, {field: lastName, order: 'DESC'}]
    */
   handleSort(sort: any) {
     const querySorts: QuerySort[] = [];
-    if (isString(sort)) {
-      querySorts.push(this.buildQuerySortItem(sort));
-    } else if (isArrayFull(sort)) {
+    if (isArrayFull(sort)) {
       sort.forEach((sortItem) => {
-        querySorts.push(this.buildQuerySortItem(sortItem));
+        if (isObject(sortItem)) {
+          validateSort(sortItem);
+          querySorts.push(sortItem);
+        } else {
+          querySorts.push(this.buildQuerySortItem(sortItem));
+        }
       });
-    } else {
-      console.error('sort param invalid:', sort);
+    } else if (isString(sort)) {
+      querySorts.push(this.buildQuerySortItem(sort));
+    } else if (isObjectFull(sort)) {
+      validateSort(sort);
+      querySorts.push(sort);
     }
 
     return querySorts;
