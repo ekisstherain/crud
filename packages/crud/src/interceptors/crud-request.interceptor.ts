@@ -15,7 +15,7 @@ import { MergedCrudOptions, CrudRequest, SearchDto } from '../interfaces';
 import { QueryFilterFunction } from '../types';
 import { CrudBaseInterceptor } from './crud-base.interceptor';
 import * as _ from 'lodash';
-import { validateSort } from '@nestjsx/crud-request/lib/request-query.validator';
+import { validateSort } from '@nestjsx/crud-request/request-query.validator';
 
 @Injectable()
 export class CrudRequestInterceptor extends CrudBaseInterceptor implements NestInterceptor {

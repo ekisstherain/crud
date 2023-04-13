@@ -37,7 +37,12 @@
     "prepare": "npx husky install",
     "release": "mrepo release",
     "release:alpha": "yarn release prerelease --preid alpha --dist-tag alpha",
-    "release:beta": "yarn release prerelease --preid beta --dist-tag beta"
+    "release:beta": "yarn release prerelease --preid beta --dist-tag beta",
+    "deploy:crud": "xcopy /e/h/y \"packages/crud/lib\" \"../mall/node_modules/@nestjsx/crud\" > nul 2>&1",
+    "deploy:crud-request": "xcopy /e/h/y \"packages/crud-request/lib\" \"../mall/node_modules/@nestjsx/crud-request\" > nul 2>&1",
+    "deploy:crud-typeorm": "xcopy /e/h/y \"packages/crud-typeorm/lib\" \"../mall/node_modules/@nestjsx/crud-typeorm\" > nul 2>&1",
+    "deploy:util": "xcopy /e/h/y \"packages/util/lib\" \"../mall/node_modules/@nestjsx/util\" > nul 2>&1",
+    "deploy:all": "yarn deploy:crud && yarn deploy:crud-request && yarn deploy:crud-typeorm && yarn deploy:util"
   },
   "config": {
     "commitizen": {
