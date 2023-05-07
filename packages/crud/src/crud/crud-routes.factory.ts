@@ -24,6 +24,10 @@ import { BaseRouteName } from '../types';
 import { CrudActions, CrudValidationGroups } from '../enums';
 import { CrudConfigService } from '../module';
 import { RequestQueryParser } from '@nestjsx/crud-request';
+import { TransformationType } from 'class-transformer';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import { defaultMetadataStorage } from 'class-transformer/cjs/storage';
 
 export class CrudRoutesFactory {
   protected options: MergedCrudOptions;
@@ -70,10 +74,27 @@ export class CrudRoutesFactory {
     // console.error('create_routers');
     const routesSchema = this.getRoutesSchema();
     this.mergeOptions();
+    this.buildResponseColumns();
     this.setResponseModels();
     this.createRoutes(routesSchema);
     this.overrideRoutes(routesSchema);
     this.enableRoutes(routesSchema);
+  }
+
+  /**
+   * 根据ResponseDtoOptions计算返回字段集合
+   */
+  protected buildResponseColumns() {
+    const responseDto = this.options.responseDto;
+    if (!responseDto) {
+      return;
+    }
+    const responseColumns = {};
+    Object.entries(responseDto).forEach(
+      ([key, value]) => {
+        responseColumns[key] = defaultMetadataStorage.getExposedProperties(value, TransformationType.CLASS_TO_CLASS);
+      });
+    this.options.responseColumns = responseColumns;
   }
 
   protected mergeOptions() {

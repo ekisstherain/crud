@@ -6,7 +6,7 @@ import {
   GetManyDefaultResponse,
   JoinOption,
   JoinOptions,
-  QueryOptions,
+  QueryOptions, CrudActions,
 } from '@nestjsx/crud';
 import {
   ParsedRequestParams,
@@ -269,7 +269,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     // create query builder
     const builder = this.repo.createQueryBuilder(this.alias);
     // get select fields
-    const select = this.getSelect(parsed, options.query);
+    const select = this.getSelect(parsed, options);
     // select fields
     builder.select(select);
 
@@ -424,6 +424,26 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       : plainToClass(this.entityType, { ...dto, ...parsed.authPersist });
   }
 
+  /**
+   * 根据crud定义计算返回的字段
+   *
+   * @param columns
+   * @param options
+   * @protected
+   */
+  protected getResponseColumns(columns: string[], options: CrudRequestOptions): string[] {
+    switch (options.action) {
+      case CrudActions.Search:
+        const searchColumns = options.responseColumns?.search;
+        return searchColumns ? columns.filter(v => searchColumns.includes(v)) : columns;
+      case CrudActions.ReadOne:
+        const getOneColumns = options.responseColumns?.getOne;
+        return getOneColumns ? columns.filter(v => getOneColumns.includes(v)) : columns;
+      default:
+        return columns;
+    }
+  }
+
   protected getAllowedColumns(columns: string[], options: QueryOptions): string[] {
     return (!options.exclude || !options.exclude.length) &&
       (!options.allow || /* istanbul ignore next */ !options.allow.length)
@@ -535,8 +555,9 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
         return toSave;
       }
-    } catch (_) {
+    } catch (err) {
       /* istanbul ignore next */
+      console.error(err);
       return null;
     }
   }
@@ -775,8 +796,10 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     }
   }
 
-  protected getSelect(query: ParsedRequestParams, options: QueryOptions): string[] {
-    const allowed = this.getAllowedColumns(this.entityColumns, options);
+  protected getSelect(query: ParsedRequestParams, crudRequestOption: CrudRequestOptions): string[] {
+    const {query: options, responseDto } = crudRequestOption;
+    const responseColumns = this.getResponseColumns(this.entityColumns, crudRequestOption);
+    const allowed = this.getAllowedColumns(responseColumns, options);
 
     const columns =
       query.fields && query.fields.length

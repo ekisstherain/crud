@@ -56,7 +56,7 @@ export class CrudRequestInterceptor extends CrudBaseInterceptor implements NestI
           parser.search = { $and: allConditions };
         }
 
-        req[PARSED_CRUD_REQUEST_KEY] = this.getCrudRequest(parser, crudOptions);
+        req[PARSED_CRUD_REQUEST_KEY] = this.getCrudRequest(parser, crudOptions, action);
       }
 
       return next.handle();
@@ -155,9 +155,9 @@ export class CrudRequestInterceptor extends CrudBaseInterceptor implements NestI
     }
   }
 
-  getCrudRequest(parser: RequestQueryParser, crudOptions: Partial<MergedCrudOptions>): CrudRequest {
+  getCrudRequest(parser: RequestQueryParser, crudOptions: Partial<MergedCrudOptions>, action): CrudRequest {
     const parsed = parser.getParsed();
-    const { query, routes, params } = crudOptions;
+    const { query, routes, params, responseDto, responseColumns } = crudOptions;
 
     return {
       parsed,
@@ -165,6 +165,9 @@ export class CrudRequestInterceptor extends CrudBaseInterceptor implements NestI
         query,
         routes,
         params,
+        responseDto,
+        action,
+        responseColumns,
       },
     };
   }
